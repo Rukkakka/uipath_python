@@ -17,29 +17,86 @@ from openpyxl.styles import Alignment
 from excel import *
 
 
+def autofit_column_and_row(sheet):
+    for column_cells in sheet.columns:
+        max_length = 0
+        for cell in column_cells:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2) * 1.2
+        sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
 
-# df = pd.read_excel('통합 문서1.xlsx', 'Sheet1',header=0)
+    for column_cells in sheet.iter_cols(min_row=start_row, max_row=end_row, min_col=start_column, max_col=end_column):
+        max_length = 0
+        for cell in column_cells:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2) * 1.2
+        sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
 
-# print(df)
+    for row_cells in sheet.rows:
+        max_height = 0
+        for cell in row_cells:
+            try:
+                lines = str(cell.value).count("\n") + 1
+                height = (lines * 12) + 4
+                if height > max_height:
+                    max_height = height
+            except:
+                pass
+        sheet.row_dimensions[row_cells[0].row].height = max_height
 
-# for r in dataframe_to_rows(df, index=False, header=False):
-#   ws.append(r)
 
-# culumns is passed by list and element of columns means column index in worksheet.
-# if culumns = [1, 3, 4] then, 1st, 3th, 4th columns are applied autofit culumn.
-# margin is additional space of autofit column. 
+if __name__ == "__main__":
+    # 파일 로드
+    workbook = load_workbook('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx')
+    sheet = workbook['Sheet1']
 
-## 각 칼럼에 대해서 모든 셀값의 문자열 개수에서 1.1만큼 곱한 것들 중 최대값을 계산한다.
-# for column_cells in ws.columns:
-#     length = max(len(str(cell.value))*1.1 for cell in column_cells)
-#     ws.column_dimensions[column_cells[0].column_letter].width = length
-#     ## 셀 가운데 정렬
-#     for cell in ws[column_cells[0].column_letter]:
-#         cell.alignment = Alignment(horizontal='center')
-    
-# wb.save('통합 문서1.xlsx')
+    # 열 너비와 행 높이를 자동으로 조정
+    autofit_column_and_row(sheet)
 
-append_range('통합 문서1.xlsx','Sheet1','통합 문서1.xlsx','Sheet2')
+    # 변경된 내용을 저장
+    workbook.save('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx')
+
+from openpyxl import load_workbook
+
+def autofit_column_and_row(sheet, start_row, end_row, start_column, end_column):
+    for column_cells in sheet.iter_cols(min_row=start_row, max_row=end_row, min_col=start_column, max_col=end_column):
+        max_length = 0
+        for cell in column_cells:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2) * 1.2
+        sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
+
+    for row_cells in sheet.iter_rows(min_row=start_row, max_row=end_row, min_col=start_column, max_col=end_column):
+        max_height = 0
+        for cell in row_cells:
+            try:
+                lines = str(cell.value).count("\n") + 1
+                height = (lines * 12) + 4
+                if height > max_height:
+                    max_height = height
+            except:
+                pass
+        sheet.row_dimensions[row_cells[0].row].height = max_height
+
+if __name__ == "__main__":
+    workbook = load_workbook('example.xlsx')
+    sheet = workbook.active
+    autofit_column_and_row(sheet, start_row=2, end_row=3, start_column=1, end_column=2)
+    workbook.save('example_auto_fitted.xlsx')
+
+
 
 
 
