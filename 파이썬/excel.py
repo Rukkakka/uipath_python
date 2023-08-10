@@ -5,14 +5,14 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import re
 
-def read_cell(file_name: str, sheet_name: [str,int], cell: str):
+def read_cell(file_name: str, sheet_name: [str, int], cell: str):
 
     wb = load_workbook(file_name, data_only=False)
     ws = wb[sheet_name]
     cell_value = ws[cell].value
     return cell_value
 
-def read_range(file_name: str, sheet_name: [str,int], range: str = None, header_y_n: [int,None] = 0):
+def read_range(file_name: str, sheet_name: [str, int], range: str = None, header_y_n: [int, None] = 0):
 
     if range == None:
 
@@ -73,7 +73,7 @@ def read_range(file_name: str, sheet_name: [str,int], range: str = None, header_
         else:
             print('오류')
 
-def data_input(file_name: str , sheet_name: [str,int], start_cell: str , end_cell: str, data: str, fluctuate=0):
+def data_input(file_name: str , sheet_name: [str, int], start_cell: str , end_cell: str, data: str, fluctuate=0):
     """
     start_cell 및 end_cell cell값으로 기재 ex. A1, B3 등등..
     만약 최대 행
@@ -137,7 +137,7 @@ def data_input(file_name: str , sheet_name: [str,int], start_cell: str , end_cel
 
     wb.save(file_name) # 값 저장
 
-def write_cell(file_name: str, sheet_name: [str,int], cell: str, data: any, sheet_create: bool = True):
+def write_cell(file_name: str, sheet_name: [str, int], cell: str, data: any, sheet_create: bool = True):
 
     wb = load_workbook(file_name, data_only=False) # 파일 호출
     try:
@@ -153,7 +153,7 @@ def write_cell(file_name: str, sheet_name: [str,int], cell: str, data: any, shee
     ws[cell] = data
     wb.save(file_name) # 값 저장
 
-def write_range(file_name: str , df, sheet_name: [str,int], cell: str, headers: bool=False, index: bool=False, sheet_create: bool = True):
+def write_range(file_name: str , df, sheet_name: [str, int], cell: str, headers: bool=False, index: bool=False, sheet_create: bool = True):
 
     pattern = r'[a-z A-Z]+'
     result = re.findall(pattern, cell)
@@ -185,7 +185,7 @@ def write_range(file_name: str , df, sheet_name: [str,int], cell: str, headers: 
 
     wb.save(file_name) # 값 저장
 
-def append_range(save_file_name: str, save_sheet_name: [str,int], read_file_name: str, read_sheet_name: [str,int], headers: bool = False):
+def append_range(save_file_name: str, save_sheet_name: [str, int], read_file_name: str, read_sheet_name: [str, int], headers: bool = False):
 
     wb1 = load_workbook(save_file_name, data_only=False)
     ws1 = wb1[save_sheet_name]
@@ -211,7 +211,7 @@ def append_range(save_file_name: str, save_sheet_name: [str,int], read_file_name
 
     wb1.save(save_file_name)
 
-def append_range_workbook(file_name: str, sheet_name: [str,int], df):
+def append_range_workbook(file_name: str, sheet_name: [str, int], df):
 
     wb = load_workbook(file_name, data_only=False)
     ws = wb[sheet_name]
@@ -222,7 +222,7 @@ def append_range_workbook(file_name: str, sheet_name: [str,int], df):
 
     wb.save(file_name)
 
-def line_builder(file_name: str, sheet_name: [str,int], start_cell: str, end_cell: str, line_type = 'thin'):
+def line_builder(file_name: str, sheet_name: [str, int], start_cell: str, end_cell: str, line_type = 'thin'):
 
     """
     start_cell 및 end_cell cell값으로 기재 ex. A1, B3 등등..
@@ -296,7 +296,7 @@ def line_builder(file_name: str, sheet_name: [str,int], start_cell: str, end_cel
 
     wb.save(file_name) # 값 저장
 
-def color_input(file_name: str, sheet_name: [str,int], range: str, color_code: str, type = 'solid'):
+def color_input(file_name: str, sheet_name: [str, int], range: str, color_code: str, type = 'solid'):
     
     wb = load_workbook(file_name, data_only=False)
 
@@ -321,7 +321,7 @@ def color_input(file_name: str, sheet_name: [str,int], range: str, color_code: s
 
     wb.save(file_name)
 
-def autofit_range(file_name, sheet_name: [str,int], column_y_n: bool = True, row_y_n: bool = True):
+def autofit_range(file_name: str, sheet_name: [str, int], column_y_n: bool = True, row_y_n: bool = True):
 
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
@@ -353,5 +353,39 @@ def autofit_range(file_name, sheet_name: [str,int], column_y_n: bool = True, row
 
     wb.save(file_name)
 
+def clear_sheet_range_table(file_name: str, sheet_name: [str, int], header_y_n: bool = True, range: str = None):
+
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    if range:
+        pattern = r'[a-z A-Z]+'
+        result = re.findall(pattern, range)
+        alphabet = result
+        start_column = alphabet[0]
+        start_column = int(ord(start_column)) - 64
+        end_column = alphabet[1]
+        end_column = int(ord(end_column)) - 64
+
+        pattern = r'\d+'
+        result = re.findall(pattern, range)
+        numbers = result
+        start_row = int(numbers[0])
+        end_row = int(numbers[1])
+
+        for row in ws.iter_rows(min_row=start_row, max_row=end_row, min_col=start_column, max_col=end_column):
+            for cell in row:
+                cell.value = None
+
+    else:
+
+        if header_y_n:
+            ws.delete_rows(2, ws.max_row)
+        else:
+            ws.delete_rows(1, ws.max_row)
+
+    wb.save(file_name)
+
 if __name__ == '__main__':
-    autofit_range('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet1')
+    clear_sheet_range_table('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet1', False,'A2:B3')
+
