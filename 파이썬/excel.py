@@ -5,22 +5,30 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import re
 
-def read_cell(file_name: str, sheet_name: [str, int], cell: str):
+def read_cell(file_name: str, sheet_name: [str, int], cell: str, only_data: bool = True):
 
-    wb = load_workbook(file_name, data_only=False)
+    wb = load_workbook(file_name, data_only=only_data)
     ws = wb[sheet_name]
     cell_value = ws[cell].value
     return cell_value
 
-def read_range(file_name: str, sheet_name: [str, int], range: str = None, header_y_n: [int, None] = 0):
+def read_range(file_name: str, sheet_name: [str, int], range: str = None, header_y_n: bool = True, only_data: bool = True):
 
+    # 시트 호출
+    wb = load_workbook(file_name, data_only=only_data)
+    ws = wb[sheet_name]
+
+    # 데이터 초기화
+    data = []
+
+    # 시트/범위 분류
+    # 시트 호출
     if range == None:
+        for row in ws.iter_rows(values_only=True):
+            data.append(row)
 
-        df = pd.read_excel(file_name, sheet_name, header = header_y_n)
-        return df
-
+    # 범위 호출
     else:
-
         pattern = r'[a-z A-Z]+'
         result = re.findall(pattern, range)
         alphabet = result
@@ -31,10 +39,6 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
         numbers = result
         numbers_count = len(numbers)
 
-        wb = load_workbook(file_name, data_only=False)
-        ws = wb[sheet_name]
-        
-        data = []
         if alphabet_count == 1 and numbers_count == 1:
             # A1
             start_column = alphabet[0]
@@ -46,12 +50,7 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
                 row_data = [cell.value for cell in row]
                 data.append(row_data)
 
-            df = pd.DataFrame(data)
-
-            return df
-
         elif alphabet_count == 2 and numbers_count == 2:
-
             # A1:B2
             start_column = alphabet[0]
             start_column = int(ord(start_column)) - 64
@@ -66,12 +65,15 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
                 row_data = [cell.value for cell in row]
                 data.append(row_data)
 
-            df = pd.DataFrame(data)
+    if header_y_n:
+        # 리스트를 DataFrame으로 변환
+        columns = data[0]  # 첫 번째 행을 컬럼으로 사용
+        data = data[1:]  # 첫 번째 행을 제외한 나머지 데이터
+        df = pd.DataFrame(data, columns=columns)
+    else:
+        df = pd.DataFrame(data)
 
-            return df
-
-        else:
-            print('오류')
+    return df
 
 def data_input(file_name: str , sheet_name: [str, int], start_cell: str , end_cell: str, data: str, fluctuate=0):
     """
@@ -153,7 +155,11 @@ def write_cell(file_name: str, sheet_name: [str, int], cell: str, data: any, she
     ws[cell] = data
     wb.save(file_name) # 값 저장
 
-def write_range(file_name: str , df, sheet_name: [str, int], cell: str, headers: bool=False, index: bool=False, sheet_create: bool = True):
+def write_range(file_name: str , df, sheet_name: [str, int], cell: str=None, headers: bool=False, index: bool=False, sheet_create: bool = True):
+
+    # cell값이 지정이 되어 있지 않다면 항상 A1부터 기입되게 설정
+    if cell is None:
+        cell = 'A1'
 
     pattern = r'[a-z A-Z]+'
     result = re.findall(pattern, cell)
@@ -193,14 +199,14 @@ def append_range(save_file_name: str, save_sheet_name: [str, int], read_file_nam
     wb2 = load_workbook(read_file_name, data_only=False)
     ws2 = wb2[read_sheet_name]
 
-    # 워크시트에서 셀 값을 추출하여 리스트로 저장
     data = []
+
     if headers:
         min = 1
     else:
         min = 2
 
-    for row in ws2.iter_rows(min_row = min, values_only=True):
+    for row in ws2.iter_rows(min_ro=min, values_only=True):
         data.append(row)
 
     # 데이터프레임 생성
@@ -386,6 +392,20 @@ def clear_sheet_range_table(file_name: str, sheet_name: [str, int], header_y_n: 
 
     wb.save(file_name)
 
+def copy_paste_range(file_name1: str, sheet_name1: [str, int], file_name2: str, sheet_name2: [str, int],
+                     r_range: str = None, w_range: str = None, header_y_n: bool = True, only_data: bool = True,
+                     change: bool = False):
+
+    if change:
+        df = read_range(file_name1, sheet_name1, r_range, False, only_data)
+        df = df.transpose()
+        write_range(file_name2, df, sheet_name2, w_range, False)
+    else:
+        df = read_range(file_name1, sheet_name1, r_range, header_y_n, only_data)
+        write_range(file_name2, df, sheet_name2, w_range, header_y_n)
+
+
 if __name__ == '__main__':
-    clear_sheet_range_table('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet1', False,'A2:B3')
+    a = copy_paste_range('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet1','/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3','A2:B4','D4',True,True,True)
+
 
