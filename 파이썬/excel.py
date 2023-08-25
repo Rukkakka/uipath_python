@@ -163,7 +163,7 @@ def write_range(file_name: str , df, sheet_name: [str, int], cell: str=None, hea
 
     pattern = r'[a-z A-Z]+'
     result = re.findall(pattern, cell)
-    start_column  = result[0]
+    start_column = result[0]
     start_column = int(ord(start_column)) - 65
 
     pattern = r'\d+'
@@ -404,8 +404,67 @@ def copy_paste_range(file_name1: str, sheet_name1: [str, int], file_name2: str, 
         df = read_range(file_name1, sheet_name1, r_range, header_y_n, only_data)
         write_range(file_name2, df, sheet_name2, w_range, header_y_n)
 
+def delete_column(file_name: str, sheet_name: [str, int], column: str):
+
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    df = pd.read_excel(file_name, sheet_name=sheet_name)
+    try:
+        column_index = df.columns.get_loc(column) + 1
+        ws.delete_cols(column_index)
+        wb.save(file_name)
+
+    except:
+        pattern = r'[a-z A-Z]+'
+        result = re.findall(pattern, column)
+        alphabet = result
+        alphabet_count = len(alphabet)
+        if alphabet_count == 1:
+            ws.delete_cols(int(ord(alphabet[0])) - 64)
+            wb.save(file_name)
+        elif alphabet_count == 2 and ':' in column:
+            start_column = alphabet[0]
+            end_column = alphabet[1]
+            delete_numbers = int(ord(end_column)) - int(ord(start_column)) + 1
+            ws.delete_cols(int(ord(start_column)) - 64, amount=delete_numbers)
+            wb.save(file_name)
+        elif ',' in column:
+            column_split_str = column.split(',')
+            column_split_int = [int(ord(i)) for i in column_split_str]
+            column_split_int = sorted(column_split_int, reverse=True)
+            for i in column_split_int:
+                ws.delete_cols(i - 64)
+                wb.save(file_name)
+
+
+def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
+
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    try:
+        row_index = int(row)
+        ws.delete_rows(idx=row_index)
+        wb.save(file_name)
+    except:
+        if '-' in row:
+            pattern = r'\d+'
+            result = re.findall(pattern, row)
+            numbers = result
+            row_index = int(numbers[1]) - int(numbers[0]) + 1
+            for i in range(row_index):
+                ws.delete_rows(idx=int(numbers[0]))
+                wb.save(file_name)
+        elif ',' in row:
+            pattern = r'\d+'
+            result = re.findall(pattern, row)
+            numbers = [int(i) for i in result]
+            numbers = sorted(numbers, reverse=True)
+            for i in numbers:
+                ws.delete_rows(idx=i)
+                wb.save(file_name)
 
 if __name__ == '__main__':
-    a = copy_paste_range('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet1','/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3','A2:B4','D4',True,True,True)
-
+    delete_column('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3','A,B')
 
