@@ -1,6 +1,7 @@
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.utils import column_index_from_string
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import re
@@ -437,7 +438,6 @@ def delete_column(file_name: str, sheet_name: [str, int], column: str):
                 ws.delete_cols(i - 64)
                 wb.save(file_name)
 
-
 def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
 
     wb = load_workbook(file_name)
@@ -465,6 +465,81 @@ def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
                 ws.delete_rows(idx=i)
                 wb.save(file_name)
 
+def export_to_csv(file_name: str, sheet_name: [str, int], csv_file_name: str):
+
+    df = pd.read_excel(file_name, sheet_name=sheet_name, engine='openpyxl')
+    df.to_csv(csv_file_name, index=False, encoding='utf-8-sig')
+
+def fill_range(file_name: str, sheet_name: [str, int], range_value: str, value: [str, int], value_change: bool = True):
+
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    pattern = r'[a-z A-Z]+'
+    column_result = re.findall(pattern, range_value)
+    start_column = column_result[0]
+    start_column = column_index_from_string(start_column)
+    end_column = column_result[1]
+    end_column = column_index_from_string(end_column)
+
+    pattern = r'\d+'
+    row_result = re.findall(pattern, range_value)
+    start_row = int(row_result[0])
+    end_row = int(row_result[1])
+
+    if value_change:
+        if type(value) == int:
+            for row_idx, row in enumerate(range(start_row, end_row + 1)):
+                for col_idx, col in enumerate(range(start_column, end_column + 1)):
+                    new_value = value + col_idx
+                    ws.cell(row=row, column=col, value=new_value)
+                value = value + 1
+        else:
+            if '=' in value:
+                pattern = r'[A-Z]+\d+'
+                value_result = re.findall(pattern, value)
+                dict = {}
+
+                for row_idx, row in enumerate(range(start_row, end_row + 1)):
+                    for col_idx, col in enumerate(range(start_column, end_column + 1)):
+                        for i in value_result:
+                            cell_colume_str = i[0]
+                            cell_row_str = i[1:]
+                            new_cell = get_column_letter(column_index_from_string(cell_colume_str) + col_idx)
+                            new_cell = new_cell + str(cell_row_str)
+                            if len(new_cell) != len(i):
+                                new_cell = new_cell + ' '
+                            dict[i] = new_cell
+                        cell_key = ''.join(list(dict.keys()))
+                        cell_value = ''.join(list(dict.values()))
+                        new_col = value.translate(str.maketrans(cell_key, cell_value))
+                        ws.cell(row=row, column=col, value=new_col)
+                        dict = {}
+
+                    pattern = r'[A-Z]+\d+'
+                    value_result = re.findall(pattern, value)
+                    for i in value_result:
+                        cell_colume_str = i[0]
+                        cell_row_str = i[1:]
+                        new_cell = str(int(cell_row_str) + 1)
+                        new_cell = str(cell_colume_str) + new_cell
+                        dict[i] = new_cell
+                    for i in dict.keys():
+                        value = value.replace(i, dict[i])
+                    dict = {}
+
+            else:
+                for row_idx, row in enumerate(range(start_row, end_row + 1)):
+                    for col_idx, col in enumerate(range(start_column, end_column + 1)):
+                        ws.cell(row=row, column=col, value=value)
+    else:
+        for row_idx, row in enumerate(range(start_row, end_row + 1)):
+            for col_idx, col in enumerate(range(start_column, end_column + 1)):
+                ws.cell(row=row, column=col, value=value)
+
+    wb.save(file_name)  # 값 저장
+
+
 if __name__ == '__main__':
-    delete_column('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3','A,B')
+    fill_range('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3','A5:C8',8)
 
