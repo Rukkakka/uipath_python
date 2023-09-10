@@ -43,8 +43,7 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
         if alphabet_count == 1 and numbers_count == 1:
             # A1
             start_column = alphabet[0]
-            start_column = int(ord(start_column)) - 64
-
+            start_column = column_index_from_string(start_column)
             start_row = int(numbers[0])
 
             for row in ws.iter_rows(min_row=start_row, min_col=start_column):
@@ -54,11 +53,11 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
         elif alphabet_count == 2 and numbers_count == 2:
             # A1:B2
             start_column = alphabet[0]
-            start_column = int(ord(start_column)) - 64
+            start_column = column_index_from_string(start_column)
             start_row = int(numbers[0])
 
             end_column = alphabet[1]
-            end_column = int(ord(end_column)) - 64
+            end_column = column_index_from_string(end_column)
             end_row = int(numbers[1])
 
 
@@ -165,7 +164,7 @@ def write_range(file_name: str , df, sheet_name: [str, int], cell: str=None, hea
     pattern = r'[a-z A-Z]+'
     result = re.findall(pattern, cell)
     start_column = result[0]
-    start_column = int(ord(start_column)) - 65
+    start_column = column_index_from_string(start_column) - 1
 
     pattern = r'\d+'
     result = re.findall(pattern, cell)
@@ -422,20 +421,20 @@ def delete_column(file_name: str, sheet_name: [str, int], column: str):
         alphabet = result
         alphabet_count = len(alphabet)
         if alphabet_count == 1:
-            ws.delete_cols(int(ord(alphabet[0])) - 64)
+            ws.delete_cols(column_index_from_string(alphabet[0]))
             wb.save(file_name)
         elif alphabet_count == 2 and ':' in column:
             start_column = alphabet[0]
             end_column = alphabet[1]
-            delete_numbers = int(ord(end_column)) - int(ord(start_column)) + 1
-            ws.delete_cols(int(ord(start_column)) - 64, amount=delete_numbers)
+            delete_numbers = column_index_from_string(end_column) - column_index_from_string(start_column) + 1
+            ws.delete_cols(column_index_from_string(start_column), amount=delete_numbers)
             wb.save(file_name)
         elif ',' in column:
             column_split_str = column.split(',')
-            column_split_int = [int(ord(i)) for i in column_split_str]
+            column_split_int = [column_index_from_string(i) for i in column_split_str]
             column_split_int = sorted(column_split_int, reverse=True)
             for i in column_split_int:
-                ws.delete_cols(i - 64)
+                ws.delete_cols(i)
                 wb.save(file_name)
 
 def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
