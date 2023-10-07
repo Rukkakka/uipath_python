@@ -6,15 +6,16 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import re
 
-def read_cell(file_name: str, sheet_name: [str, int], cell: str, only_data: bool = True):
 
+def read_cell(file_name: str, sheet_name: [str, int], cell: str, only_data: bool = True):
     wb = load_workbook(file_name, data_only=only_data)
     ws = wb[sheet_name]
     cell_value = ws[cell].value
     return cell_value
 
-def read_range(file_name: str, sheet_name: [str, int], range: str = None, header_y_n: bool = True, only_data: bool = True):
 
+def read_range(file_name: str, sheet_name: [str, int], range: str = None, header_y_n: bool = True,
+               only_data: bool = True):
     # 시트 호출
     wb = load_workbook(file_name, data_only=only_data)
     ws = wb[sheet_name]
@@ -60,7 +61,6 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
             end_column = column_index_from_string(end_column)
             end_row = int(numbers[1])
 
-
             for row in ws.iter_rows(min_row=start_row, max_row=end_row, min_col=start_column, max_col=end_column):
                 row_data = [cell.value for cell in row]
                 data.append(row_data)
@@ -75,7 +75,8 @@ def read_range(file_name: str, sheet_name: [str, int], range: str = None, header
 
     return df
 
-def data_input(file_name: str , sheet_name: [str, int], start_cell: str , end_cell: str, data: str, fluctuate=0):
+
+def data_input(file_name: str, sheet_name: [str, int], start_cell: str, end_cell: str, data: str, fluctuate=0):
     """
     start_cell 및 end_cell cell값으로 기재 ex. A1, B3 등등..
     만약 최대 행
@@ -102,7 +103,7 @@ def data_input(file_name: str , sheet_name: [str, int], start_cell: str , end_ce
             column_letter = chr(col)
 
             for row in range(start_row, ws.max_row + 1):
-                
+
                 if '수웃자' in data:
                     data_modify = data.replace("수웃자", str(row + fluctuate))
 
@@ -120,7 +121,6 @@ def data_input(file_name: str , sheet_name: [str, int], start_cell: str , end_ce
         result = re.findall(pattern, end_cell)
         end_column = result[0]
 
-
         # cell값에서 row값 추출
         pattern = r'\d+'
         result = re.findall(pattern, start_cell)
@@ -131,19 +131,18 @@ def data_input(file_name: str , sheet_name: [str, int], start_cell: str , end_ce
 
         for col in range(ord(start_column), ord(end_column) + 1):
 
-                column_letter = chr(col)
+            column_letter = chr(col)
 
-                for row in range(start_row, end_row+1):
+            for row in range(start_row, end_row + 1):
+                ws[f'{column_letter}{str(row)}'] = data
 
-                    ws[f'{column_letter}{str(row)}'] = data
+    wb.save(file_name)  # 값 저장
 
-    wb.save(file_name) # 값 저장
 
 def write_cell(file_name: str, sheet_name: [str, int], cell: str, data: any, sheet_create: bool = True):
-
-    wb = load_workbook(file_name, data_only=False) # 파일 호출
+    wb = load_workbook(file_name, data_only=False)  # 파일 호출
     try:
-        ws = wb[sheet_name] # 시트호출
+        ws = wb[sheet_name]  # 시트호출
     except:
         if sheet_create:
             wb.create_sheet(sheet_name)
@@ -153,10 +152,11 @@ def write_cell(file_name: str, sheet_name: [str, int], cell: str, data: any, she
             raise Exception(f'{sheet_name} 없습니다.')
 
     ws[cell] = data
-    wb.save(file_name) # 값 저장
+    wb.save(file_name)  # 값 저장
 
-def write_range(file_name: str , df, sheet_name: [str, int], cell: str=None, headers: bool=False, index: bool=False, sheet_create: bool = True):
 
+def write_range(file_name: str, df, sheet_name: [str, int], cell: str = None, headers: bool = False,
+                index: bool = False, sheet_create: bool = True):
     # cell값이 지정이 되어 있지 않다면 항상 A1부터 기입되게 설정
     if cell is None:
         cell = 'A1'
@@ -170,9 +170,9 @@ def write_range(file_name: str , df, sheet_name: [str, int], cell: str=None, hea
     result = re.findall(pattern, cell)
     start_row = int(result[0])
 
-    wb = load_workbook(file_name, data_only=False) # 파일 호출
+    wb = load_workbook(file_name, data_only=False)  # 파일 호출
     try:
-        ws = wb[sheet_name] # 시트호출
+        ws = wb[sheet_name]  # 시트호출
     except:
         if sheet_create:
             wb.create_sheet(sheet_name)
@@ -186,13 +186,14 @@ def write_range(file_name: str , df, sheet_name: [str, int], cell: str=None, hea
 
     for row in rows:
         for idx, cell_value in enumerate(row, start=1):
-            ws.cell(row=start_row, column=start_column+idx, value=cell_value)
+            ws.cell(row=start_row, column=start_column + idx, value=cell_value)
         start_row += 1
 
-    wb.save(file_name) # 값 저장
+    wb.save(file_name)  # 값 저장
 
-def append_range(save_file_name: str, save_sheet_name: [str, int], read_file_name: str, read_sheet_name: [str, int], headers: bool = False):
 
+def append_range(save_file_name: str, save_sheet_name: [str, int], read_file_name: str, read_sheet_name: [str, int],
+                 headers: bool = False):
     wb1 = load_workbook(save_file_name, data_only=False)
     ws1 = wb1[save_sheet_name]
 
@@ -217,28 +218,27 @@ def append_range(save_file_name: str, save_sheet_name: [str, int], read_file_nam
 
     wb1.save(save_file_name)
 
-def append_range_workbook(file_name: str, sheet_name: [str, int], df):
 
+def append_range_workbook(file_name: str, sheet_name: [str, int], df):
     wb = load_workbook(file_name, data_only=False)
     ws = wb[sheet_name]
-
 
     for row in dataframe_to_rows(df, index=False, header=False):
         ws.append(row)
 
     wb.save(file_name)
 
-def line_builder(file_name: str, sheet_name: [str, int], start_cell: str, end_cell: str, line_type = 'thin'):
 
+def line_builder(file_name: str, sheet_name: [str, int], start_cell: str, end_cell: str, line_type='thin'):
     """
     start_cell 및 end_cell cell값으로 기재 ex. A1, B3 등등..
     만약 최대 행 갯수까지 라인을 그리고 싶다면 end_cell은 컬럼명+MAX로 한다. ex(B+MAX)
     """
 
     border = Border(left=Side(border_style=line_type),
-                right=Side(border_style=line_type),
-                top=Side(border_style=line_type),
-                bottom=Side(border_style=line_type))   
+                    right=Side(border_style=line_type),
+                    top=Side(border_style=line_type),
+                    bottom=Side(border_style=line_type))
 
     wb = load_workbook(file_name, data_only=False)
     ws = wb[sheet_name]
@@ -268,7 +268,6 @@ def line_builder(file_name: str, sheet_name: [str, int], start_cell: str, end_ce
             column_letter = chr(col)
 
             for row in range(1, ws.max_row + 1):
-
                 cell = ws[f'{column_letter}{str(row)}']
                 cell.border = border
 
@@ -282,7 +281,6 @@ def line_builder(file_name: str, sheet_name: [str, int], start_cell: str, end_ce
         result = re.findall(pattern, end_cell)
         end_column = result[0]
 
-
         # cell값에서 row값 추출
         pattern = r'\d+'
         result = re.findall(pattern, start_cell)
@@ -293,17 +291,16 @@ def line_builder(file_name: str, sheet_name: [str, int], start_cell: str, end_ce
 
         for col in range(ord(start_column), ord(end_column) + 1):
 
-                column_letter = chr(col)
+            column_letter = chr(col)
 
-                for row in range(start_row, end_row+1):
+            for row in range(start_row, end_row + 1):
+                cell = ws[f'{column_letter}{str(row)}']
+                cell.border = border
 
-                    cell = ws[f'{column_letter}{str(row)}']
-                    cell.border = border
+    wb.save(file_name)  # 값 저장
 
-    wb.save(file_name) # 값 저장
 
-def color_input(file_name: str, sheet_name: [str, int], range: str, color_code: str, type = 'solid'):
-    
+def color_input(file_name: str, sheet_name: [str, int], range: str, color_code: str, type='solid'):
     wb = load_workbook(file_name, data_only=False)
 
     # 시트 선택
@@ -314,8 +311,8 @@ def color_input(file_name: str, sheet_name: [str, int], range: str, color_code: 
     color_code 원하는 색깔(색깔 코드로)
     fill_type 어떻게 채울지 
     """
-    fill = PatternFill(start_color=color_code, end_color=color_code, fill_type=type) # 색깔 채우는 type 선택
-    
+    fill = PatternFill(start_color=color_code, end_color=color_code, fill_type=type)  # 색깔 채우는 type 선택
+
     # 원하는 범위 지정( column 전체 및 row 전체도 가능하고 범위도 가능)
     cell_range = ws[range]
     for row in cell_range:
@@ -327,8 +324,8 @@ def color_input(file_name: str, sheet_name: [str, int], range: str, color_code: 
 
     wb.save(file_name)
 
-def autofit_range(file_name: str, sheet_name: [str, int], column_y_n: bool = True, row_y_n: bool = True):
 
+def autofit_range(file_name: str, sheet_name: [str, int], column_y_n: bool = True, row_y_n: bool = True):
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
 
@@ -359,8 +356,8 @@ def autofit_range(file_name: str, sheet_name: [str, int], column_y_n: bool = Tru
 
     wb.save(file_name)
 
-def clear_sheet_range_table(file_name: str, sheet_name: [str, int], header_y_n: bool = True, range: str = None):
 
+def clear_sheet_range_table(file_name: str, sheet_name: [str, int], header_y_n: bool = True, range: str = None):
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
 
@@ -392,10 +389,10 @@ def clear_sheet_range_table(file_name: str, sheet_name: [str, int], header_y_n: 
 
     wb.save(file_name)
 
+
 def copy_paste_range(file_name1: str, sheet_name1: [str, int], file_name2: str, sheet_name2: [str, int],
                      r_range: str = None, w_range: str = None, header_y_n: bool = True, only_data: bool = True,
                      change: bool = False):
-
     if change:
         df = read_range(file_name1, sheet_name1, r_range, False, only_data)
         df = df.transpose()
@@ -404,8 +401,8 @@ def copy_paste_range(file_name1: str, sheet_name1: [str, int], file_name2: str, 
         df = read_range(file_name1, sheet_name1, r_range, header_y_n, only_data)
         write_range(file_name2, df, sheet_name2, w_range, header_y_n)
 
-def delete_column(file_name: str, sheet_name: [str, int], column: str):
 
+def delete_column(file_name: str, sheet_name: [str, int], column: str):
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
 
@@ -437,8 +434,8 @@ def delete_column(file_name: str, sheet_name: [str, int], column: str):
                 ws.delete_cols(i)
                 wb.save(file_name)
 
-def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
 
+def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
 
@@ -464,13 +461,13 @@ def delete_rows(file_name: str, sheet_name: [str, int], row: [str, int]):
                 ws.delete_rows(idx=i)
                 wb.save(file_name)
 
-def export_to_csv(file_name: str, sheet_name: [str, int], csv_file_name: str):
 
+def export_to_csv(file_name: str, sheet_name: [str, int], csv_file_name: str):
     df = pd.read_excel(file_name, sheet_name=sheet_name, engine='openpyxl')
     df.to_csv(csv_file_name, index=False, encoding='utf-8-sig')
 
-def fill_range(file_name: str, sheet_name: [str, int], range_value: str, value: [str, int], value_change: bool = True):
 
+def fill_range(file_name: str, sheet_name: [str, int], range_value: str, value: [str, int], value_change: bool = True):
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
 
@@ -536,9 +533,46 @@ def fill_range(file_name: str, sheet_name: [str, int], range_value: str, value: 
             for col_idx, col in enumerate(range(start_column, end_column + 1)):
                 ws.cell(row=row, column=col, value=value)
 
-    wb.save(file_name)  # 값 저장
+    wb.save(file_name)
+
+
+def find_first_last_data_row(file_name: str, sheet_name: [str, int], skip: int, header: bool = True,
+                             first_row_offset: int = 0, last_row_offset: int = 0) -> int:
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    data = []
+
+    for row in ws.iter_rows(values_only=True):
+        if all(value is None for value in row):
+            skip -= 1
+            if skip == -1:
+                break
+        data.append(row)
+
+    if header:
+        df = pd.DataFrame(data[1:], columns=data[0])
+    else:
+        df = pd.DataFrame(data[1:], columns=None)
+
+    while True:
+
+        last_row_is_nan = df.iloc[-1].isna().all()
+        if last_row_is_nan:
+            df = df.drop(df.index[-1])
+        else:
+            break
+
+    first_row_index = df.iloc[0].name - first_row_offset + 2
+    last_row_index = df.iloc[-1].name - last_row_offset + 2
+
+    if last_row_index < -1:
+        last_row_index = -1
+
+    return first_row_index, last_row_index
 
 
 if __name__ == '__main__':
-    fill_range('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3','A5:C8',8)
+    a, b = find_first_last_data_row('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3', 3)
+    print(a, b)
 
