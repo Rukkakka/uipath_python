@@ -5,6 +5,8 @@ from openpyxl.utils import column_index_from_string
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 import re
+import numpy as np
+from typing import List, Tuple
 
 
 def read_cell(file_name: str, sheet_name: [str, int], cell: str, only_data: bool = True):
@@ -572,7 +574,49 @@ def find_first_last_data_row(file_name: str, sheet_name: [str, int], skip: int, 
     return first_row_index, last_row_index
 
 
-if __name__ == '__main__':
-    a, b = find_first_last_data_row('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3', 3)
-    print(a, b)
+def find_replace_value(file_name: str, sheet_name: [str, int], find_values= [str, int],
+                       replace_values: [str, int] = None) -> list:
 
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    data = []
+
+    for row in ws.iter_rows(values_only=True):
+        data.append(row)
+
+    df = pd.DataFrame(data[1:], columns=data[0])
+
+    indices = np.where(df.values == find_values)
+    rows, cols = indices[0], indices[1]
+    print(type(rows))
+    result_list = []
+
+    n = 0
+    for row in rows:
+        row = int(row) + 2
+        col = cols[n]
+        col = int(col) + 1
+        result_list.append(get_column_letter(col)+str(row))
+        n += 1
+
+    if replace_values is not None:
+
+        for i in result_list:
+            ws[i].value = replace_values
+
+        wb.save(file_name)
+
+    return result_list
+
+def for_each_excel_row(file_name: str) -> list:
+
+    wb = load_workbook(file_name)
+    sheet_names = wb.sheetnames
+
+    return sheet_names
+
+
+
+if __name__ == '__main__':
+    a = find_replace_value('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3', '=A4+B5')
