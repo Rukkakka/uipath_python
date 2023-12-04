@@ -574,9 +574,8 @@ def find_first_last_data_row(file_name: str, sheet_name: [str, int], skip: int, 
     return first_row_index, last_row_index
 
 
-def find_replace_value(file_name: str, sheet_name: [str, int], find_values= [str, int],
+def find_replace_value(file_name: str, sheet_name: [str, int], find_values=[str, int],
                        replace_values: [str, int] = None) -> list:
-
     wb = load_workbook(file_name)
     ws = wb[sheet_name]
 
@@ -597,7 +596,7 @@ def find_replace_value(file_name: str, sheet_name: [str, int], find_values= [str
         row = int(row) + 2
         col = cols[n]
         col = int(col) + 1
-        result_list.append(get_column_letter(col)+str(row))
+        result_list.append(get_column_letter(col) + str(row))
         n += 1
 
     if replace_values is not None:
@@ -609,14 +608,46 @@ def find_replace_value(file_name: str, sheet_name: [str, int], find_values= [str
 
     return result_list
 
-def for_each_excel_row(file_name: str) -> list:
 
+def for_each_excel_row(file_name: str) -> list:
     wb = load_workbook(file_name)
     sheet_names = wb.sheetnames
 
     return sheet_names
 
+def insert_column(file_name: str, sheet_name: [str, int], start_position: [str, int], insert_column_value: [str ,list]):
 
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    pattern = r'[a-z A-Z]+'
+    result = re.findall(pattern, start_position)
+    alphabet = result[0]
+
+    pattern = r'\d+'
+    result = re.findall(pattern, start_position)
+    number = int(result[0])
+
+    start_column = column_index_from_string(alphabet)
+
+    if type(insert_column_value) == list:
+        ws.insert_cols(start_column, amount=len(insert_column_value))
+        for column_value in insert_column_value:
+            ws.cell(row=number, column=start_column, value=column_value)
+            start_column += 1
+    else:
+        ws.insert_cols(start_column)
+        ws.cell(row=number, column=start_column, value=insert_column_value)
+    wb.save(file_name)
+
+def insert_row(file_name: str, sheet_name: [str, int], start_row: int, num_rows_to_insert: int):
+
+    wb = load_workbook(file_name)
+    ws = wb[sheet_name]
+
+    ws.insert_rows(start_row, amount=num_rows_to_insert)
+    wb.save(file_name)
 
 if __name__ == '__main__':
-    a = find_replace_value('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3', '=A4+B5')
+    insert_row('/Users/kimjunghoo/Desktop/uipath_python/연습용.xlsx', 'Sheet3', 2, 1)
+
